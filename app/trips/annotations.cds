@@ -25,13 +25,8 @@ annotate service.Trips with @(
             },
             {
                 $Type : 'UI.DataField',
-                Value : destination.country,
-                Label : 'country',
-            },
-            {
-                $Type : 'UI.DataField',
-                Value : destination.name,
-                Label : 'name',
+                Label : 'Destination',
+                Value : destination_ID,
             },
         ],
     },
@@ -81,13 +76,15 @@ annotate service.Trips with @(
             $Type : 'UI.DataField',
             Value : title,
         },
-        TypeName : '',
-        TypeNamePlural : '',
+        TypeName : 'Trip',
+        TypeNamePlural : 'Trips',
     },
 );
 
 annotate service.Trips with {
     destination @(
+        Common.Text : destination.name,
+        Common.TextArrangement : #TextOnly,
         Common.ValueList : {
             $Type : 'Common.ValueListType',
             CollectionPath : 'Destinations',
@@ -111,7 +108,7 @@ annotate service.Trips with {
                 },
             ],
         },
-        Common.Label : 'destination_ID',
+        Common.Label : 'Destination',
     )
 };
 
@@ -160,5 +157,12 @@ annotate service.Trips with {
 
 annotate service.Trips with {
     startDate @Common.Label : 'startDate'
+};
+
+annotate service.Destinations with {
+    ID @(
+        Common.Text : name,
+        Common.TextArrangement : #TextOnly
+    )
 };
 

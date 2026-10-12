@@ -15,7 +15,7 @@ entity Trips : cuid, managed {
   endDate     : Date;
   price       : Decimal(9, 2);
   destination : Association to Destinations;
-  bookings    : Association to many Bookings on bookings.trip = $self;
+  bookings    : Composition of many Bookings on bookings.trip = $self;
 }
 
 entity Travelers : cuid, managed {
