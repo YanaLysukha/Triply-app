@@ -40,6 +40,10 @@ modules:
   - name: Triply-app-app-deployer
     type: com.sap.application.content
     path: gen
+    requires:
+      - name: Triply-app-html5-repo-host
+        parameters:
+          content-target: true
     build-parameters:
       build-result: app/
       requires:
@@ -47,24 +51,6 @@ modules:
           artifacts:
             - trips.zip
           target-path: app/
-    requires:
-      - name: Triply-app-auth
-      - name: srv-api
-      - name: Triply-app-html5-repo-host
-        parameters:
-          content-target: true
-          config:
-            HTML5Runtime_enabled: true
-    parameters:
-      config:
-        destinations:
-          - Name: srv-api
-            URL: ~{srv-api/srv-url}
-            Authentication: NoAuthentication
-            Type: HTTP
-            ProxyType: Internet
-            ForwardAuthToken: true
-            DynamicDestination: true
 
   - name: Triplyapptrips
     type: html5
@@ -133,16 +119,36 @@ resources:
             description: 'generated'
             role-template-references:
               - '$XSAPPNAME.admin'
+
   - name: Triply-app-db
     type: com.sap.xs.hdi-container
     parameters:
       service: hana
       service-plan: hdi-shared
+
   - name: Triply-app-destination
     type: org.cloudfoundry.managed-service
     parameters:
       service: destination
       service-plan: lite
+      config:
+        HTML5Runtime_enabled: true
+        init_data:
+          instance:
+            existing_destinations_policy: update
+            destinations:
+              - Name: srv-api
+                URL: ~{srv-api/srv-url}
+                Authentication: NoAuthentication
+                Type: HTTP
+                ProxyType: Internet
+                HTML5.ForwardAuthToken: true
+                HTML5.DynamicDestination: true
+              - Name: ui5
+                URL: https://ui5.sap.com
+                Authentication: NoAuthentication
+                Type: HTTP
+                ProxyType: Internet
     requires:
       - name: srv-api
 
