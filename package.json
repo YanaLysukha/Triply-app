@@ -8,13 +8,16 @@
     "@sap/xssec": "^4"
   },
   "devDependencies": {
+    "@cap-js/cds-test": "^1.0.2",
     "@cap-js/sqlite": "^3",
     "@sap/cds-dk": "^10",
-    "cds-plugin-ui5": "^0.17.0"
+    "cds-plugin-ui5": "^0.17.0",
+    "jest": "^30.5.2"
   },
   "scripts": {
     "start": "cds-serve",
-    "watch-trips": "cds watch --open my.travel.trips/index.html?sap-ui-xx-viewCache=false --livereload false"
+    "watch-trips": "cds watch --open my.travel.trips/index.html?sap-ui-xx-viewCache=false --livereload false",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "private": true,
   "cds": {
