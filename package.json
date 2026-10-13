@@ -9,6 +9,7 @@
   },
   "devDependencies": {
     "@cap-js/sqlite": "^3",
+    "@sap/cds-dk": "^10",
     "cds-plugin-ui5": "^0.17.0"
   },
   "scripts": {
@@ -19,8 +20,30 @@
   "cds": {
     "requires": {
       "[production]": {
-        "auth": "xsuaa"
-      }
+        "auth": "xsuaa",
+        "db": "hana"
+      },
+      "[development]": {
+        "auth": {
+          "kind": "mocked",
+          "users": {
+            "alice": {
+              "roles": [
+                "viewer"
+              ]
+            },
+            "admin": {
+              "roles": [
+                "admin",
+                "viewer"
+              ]
+            }
+          }
+        }
+      },
+      "destinations": true,
+      "html5-repo": true,
+      "workzone": true
     }
   },
   "workspaces": [

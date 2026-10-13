@@ -1,0 +1,153 @@
+_schema-version: 3.3.0
+ID: Triply-app
+version: 1.0.0
+description: "A simple CAP project."
+parameters:
+  enable-parallel-deployments: true
+  deploy_mode: html5-repo
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm ci
+        - npx cds build --production
+modules:
+  - name: Triply-app-srv
+    type: nodejs
+    path: gen/srv
+    parameters:
+      instances: 1
+      buildpack: nodejs_buildpack
+    build-parameters:
+      builder: npm-ci
+    provides:
+      - name: srv-api # required by consumers of CAP services (e.g. approuter)
+        properties:
+          srv-url: ${default-url}
+    requires:
+      - name: Triply-app-auth
+      - name: Triply-app-db
+      - name: Triply-app-destination
+
+  - name: Triply-app-db-deployer
+    type: hdb
+    path: gen/db
+    parameters:
+      buildpack: nodejs_buildpack
+    requires:
+      - name: Triply-app-db
+
+  - name: Triply-app-app-deployer
+    type: com.sap.application.content
+    path: gen
+    build-parameters:
+      build-result: app/
+      requires:
+        - name: Triplyapptrips
+          artifacts:
+            - trips.zip
+          target-path: app/
+    requires:
+      - name: Triply-app-auth
+      - name: srv-api
+      - name: Triply-app-html5-repo-host
+        parameters:
+          content-target: true
+          config:
+            HTML5Runtime_enabled: true
+    parameters:
+      config:
+        destinations:
+          - Name: srv-api
+            URL: ~{srv-api/srv-url}
+            Authentication: NoAuthentication
+            Type: HTTP
+            ProxyType: Internet
+            ForwardAuthToken: true
+            DynamicDestination: true
+
+  - name: Triplyapptrips
+    type: html5
+    path: app/trips
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm ci
+        - npm run build
+      supported-platforms:
+        []
+
+  - name: Triply-app-destinations
+    type: com.sap.application.content
+    requires:
+      - name: Triply-app-auth
+        parameters:
+          service-key:
+            name: Triply-app-auth-key
+      - name: Triply-app-html5-repo-host
+        parameters:
+          service-key:
+            name: Triply-app-html5-repo-host-key
+      - name: srv-api
+      - name: Triply-app-destination
+        parameters:
+          content-target: true
+    build-parameters:
+      no-source: true
+    parameters:
+      content:
+        instance:
+          existing_destinations_policy: update
+          destinations:
+            - Name: Triply-app-html5-repository
+              ServiceInstanceName: Triply-app-html5-repo-host
+              ServiceKeyName: Triply-app-html5-repo-host-key
+              sap.cloud.service: Triplyapp.service
+            - Name: Triply-app-auth
+              Authentication: OAuth2UserTokenExchange
+              ServiceInstanceName: Triply-app-auth
+              ServiceKeyName: Triply-app-auth-key
+              sap.cloud.service: Triplyapp.service
+
+resources:
+  - name: Triply-app-auth
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-plan: application
+      path: ./xs-security.json
+      config:
+        xsappname: Triply-app-${org}-${space}
+        tenant-mode: dedicated
+        oauth2-configuration:
+          credential-types:
+            - "binding-secret"
+            - "x509"
+        role-collections:
+          - name: 'viewer (Triply-app ${org}-${space})'
+            description: 'generated'
+            role-template-references:
+              - '$XSAPPNAME.viewer'
+          - name: 'admin (Triply-app ${org}-${space})'
+            description: 'generated'
+            role-template-references:
+              - '$XSAPPNAME.admin'
+  - name: Triply-app-db
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared
+  - name: Triply-app-destination
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: destination
+      service-plan: lite
+    requires:
+      - name: srv-api
+
+  - name: Triply-app-html5-repo-host
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-host
