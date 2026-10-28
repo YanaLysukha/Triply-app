@@ -5,11 +5,11 @@ service TravelService @(
     requires: 'authenticated-user'
 ) {
     entity Trips @(restrict: [
-        { grant: 'READ', to: 'viewer' },
+        { grant: 'READ', to: ['viewer', 'system-user'] },
         { grant: '*',    to: 'admin'  }
     ]) as projection on my.Trips;
     entity Bookings @(restrict: [
-        { grant: 'READ', to: 'viewer' },
+        { grant: 'READ', to: ['viewer', 'system-user'] },
         { grant: '*',    to: 'admin'  }
     ]) as projection on my.Bookings;
 
